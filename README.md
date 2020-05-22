@@ -2,7 +2,7 @@
 A fully resumable horizontally (infinitely) scalable webscraper in Go. Think 1000's of machines scraping sites in a distributed way. Based on Docker Swarm, Cassandra, colly, gRPC, and my other [boilerplate](https://github.com/dioptre/gtrpc).
 
 ## Note
-Why are you even here? Maybe you could probably just use colly... Especially if you don't care about scalability... or use a shell script, example:
+Why are you even here? Maybe you could probably just use colly... Especially if you don't care about scalability... or use a shell script, for example:
 ```bash
 #!/bin/bash
 url="http://www.cityfeet.com/cont/api/search/listings-spatial"
@@ -51,6 +51,14 @@ Notice the parameters:
 Then send a request via the client:
 ```
 ./gcli https://en.wikipedia.org/wiki/List_of_HTTP_status_codes
+```
+Or something a little more complex (with domain filter & regex [note you can split regex into multiple filters using ```||```]):
+```
+./gcli https://en.wikipedia.org/wiki/List_of_HTTP_status_codes en.wikipedia.org ".*List.*status_codes$"
+```
+Or without the domain filter:
+```
+./gcli https://en.wikipedia.org/wiki/List_of_HTTP_status_codes _ ".*List.*status_codes$"
 ```
 
 ## Running on Docker Swarm

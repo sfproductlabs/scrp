@@ -130,7 +130,7 @@ func scrape(in *pb.ScrapeRequest) {
 	}
 
 	if in.Filter != "" && in.Filter != "_" {
-		filterStrings := strings.Split(in.Filter, "|")
+		filterStrings := strings.Split(in.Filter, "||")
 		filters := make([]*regexp.Regexp, len(filterStrings))
 		for i := range filterStrings {
 			filters[i] = regexp.MustCompile(filterStrings[i])

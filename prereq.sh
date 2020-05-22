@@ -25,7 +25,7 @@ cd ..
 
 #Setup Cassandra Schema
 echo "[CASSANDRA REQUIRED - OR YOU NEED TO INSTALL SCHEMA MANUALLY]"
-cqlsh --ssl -f ./setup/schema.1.cql 
+cqlsh --ssl -f ./.setup/schema.1.cql 
 
 #Generate certificates for gRPC
 #Common Name (e.g. server FQDN or YOUR name) []:backend.local
