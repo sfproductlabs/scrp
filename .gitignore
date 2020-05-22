@@ -1,0 +1,13 @@
+protobuf/
+*.gos
+*.key
+*.cert
+gcli
+gsvc
+traefik
+consul
+*/debug
+data/
+.DS_STORE
+.data/
+.DS_Store

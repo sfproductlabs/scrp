@@ -1,0 +1,17 @@
+version: "3.4"
+services:
+  cassandra:
+    image: sfproductlabs/elassandra:latest
+    expose:
+      - "9042"
+    ports:
+      - "9042:9042"
+      - "9160:9160"
+    network_mode: host  
+    #hostname: cassandra1
+    container_name: cassandra1
+    volumes: 
+      - ./.setup:/tmp/.csetup
+    command: >
+             bash -c "((sleep 90s && cqlsh --ssl -f /tmp/.csetup/schema.1.cql &) && (/docker-entrypoint.sh cassandra -f))"
+
