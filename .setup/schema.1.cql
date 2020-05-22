@@ -3,6 +3,7 @@
 
 -- SCRP
 -- drop keyspace scrp;
+--CREATE KEYSPACE scrp WITH replication = {'class': 'NetworkTopologyStrategy', 'DC1': '2'}  AND durable_writes = true; --Use this for production
 create keyspace scrp WITH REPLICATION = {  'class':'NetworkTopologyStrategy', 'DC1':'1' };
 
 use scrp;

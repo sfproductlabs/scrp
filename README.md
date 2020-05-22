@@ -50,16 +50,32 @@ Notice the parameters:
 
 Then send a request via the client:
 ```
-./gcli https://en.wikipedia.org/wiki/List_of_HTTP_status_codes
+./gcli localhost:50551 https://en.wikipedia.org/wiki/List_of_HTTP_status_codes
 ```
 Or something a little more complex (with domain filter & regex [note you can split regex into multiple filters using ```||```]):
 ```
-./gcli https://en.wikipedia.org/wiki/List_of_HTTP_status_codes en.wikipedia.org ".*List.*status_codes$"
+./gcli localhost:50551 https://en.wikipedia.org/wiki/List_of_HTTP_status_codes en.wikipedia.org ".*List.*status_codes$"
 ```
 Or without the domain filter:
 ```
-./gcli https://en.wikipedia.org/wiki/List_of_HTTP_status_codes _ ".*List.*status_codes$"
+./gcli localhost:50551 https://en.wikipedia.org/wiki/List_of_HTTP_status_codes _ ".*List.*status_codes$"
 ```
 
 ## Running on Docker Swarm
-(TODO)
+### Deploy to a swarm
+*Important: First make sure you deploy the [schema](https://github.com/sfproductlabs/scrp/blob/master/.setup/schema.1.cql) to cassandra somewhere.*
+
+
+[Checkout and use the swarm-config example](https://github.com/sfproductlabs/scrp/blob/master/scrp-docker-compose.yml) then on your docker swarm manager:
+```
+docker stack deploy -c scrp-docker-compose.yml scrp
+```
+Then follow the logs to see if you need to update anything:
+```
+docker service logs scrp_scrp -f
+```
+
+Then issue a query to the swarm (as above):
+```
+docker run -it --net=forenet sfproductlabs/scrp /app/scrp/gcli scrp_scrp:50551 https://httpbin.org/delay/2
+```

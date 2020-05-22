@@ -14,14 +14,14 @@ import (
 )
 
 var (
-	cluster_endpoint = "backend.local:50551"
+	clusterEndpoint = "backend.local:50551"
 )
 
 //Rescrape : Go through load balancer, 're-scrape'
 func Rescrape(in *pb.ScrapeRequest) {
 	//Update endpoint if we have a cluster address
 	if temp := os.Getenv("CLUSTER_ENDPOINT"); temp != "" {
-		cluster_endpoint = temp
+		clusterEndpoint = temp
 	}
 
 	// Read cert and key file
@@ -39,7 +39,7 @@ func Rescrape(in *pb.ScrapeRequest) {
 	credsClient := credentials.NewClientTLSFromCert(roots, "")
 
 	// Dial with specific Transport (with credentials)
-	conn, err := grpc.Dial(cluster_endpoint, grpc.WithTransportCredentials(credsClient))
+	conn, err := grpc.Dial(clusterEndpoint, grpc.WithTransportCredentials(credsClient))
 	if err != nil {
 		log.Fatalf("did not connect: %v\n", err)
 	}

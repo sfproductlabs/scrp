@@ -40,24 +40,29 @@ import (
 )
 
 const (
-	address       = "backend.local:50551"
-	defaultURL    = "https://httpbin.org/delay/2"
-	defaultDomain = ""
-	defaultFilter = ""
+	defaultClusterEndpoint = "backend.local:50551"
+	defaultURL             = "https://httpbin.org/delay/2"
+	defaultDomain          = ""
+	defaultFilter          = ""
 )
 
 func main() {
-	url := defaultURL
+
+	ce := defaultClusterEndpoint
 	if len(os.Args) > 1 {
-		url = os.Args[1]
+		ce = os.Args[1]
+	}
+	url := defaultURL
+	if len(os.Args) > 2 {
+		url = os.Args[2]
 	}
 	domain := defaultDomain
-	if len(os.Args) > 2 {
-		domain = os.Args[2]
+	if len(os.Args) > 3 {
+		domain = os.Args[3]
 	}
 	filter := defaultFilter
-	if len(os.Args) > 3 {
-		filter = os.Args[3]
+	if len(os.Args) > 4 {
+		filter = os.Args[4]
 	}
 
 	// Read cert and key file
@@ -75,7 +80,7 @@ func main() {
 	credsClient := credentials.NewClientTLSFromCert(roots, "")
 
 	// Dial with specific Transport (with credentials)
-	conn, err := grpc.Dial(address, grpc.WithTransportCredentials(credsClient))
+	conn, err := grpc.Dial(ce, grpc.WithTransportCredentials(credsClient))
 	if err != nil {
 		log.Fatalf("Did not connect: %v\n", err)
 	}
