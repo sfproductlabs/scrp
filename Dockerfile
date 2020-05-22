@@ -50,12 +50,14 @@ ADD . /app/scrp
 ENV CASSANDRAS=cassandra1,cassandra2,cassandra3
 ENV CASSANDRA_RETRY=false
 ENV CASSANDRA_VERIFY_HOSTS=false
-ENV CASSANDRA_ROOTCA=/tmp/.csetup/keys/rootCa.crt
-ENV CASSANDRA_CLIENT_CERT=/tmp/.csetup/keys/cassandra-client.crt
-ENV CASSANDRA_CLIENT_KEY=/tmp/.csetup/keys/cassandra-client.key
+ENV CASSANDRA_ROOTCA=
+ENV CASSANDRA_CLIENT_CERT=
+ENV CASSANDRA_CLIENT_KEY=
 ENV BACKEND_CERT=
 ENV BACKEND_KEY=
 ENV CLUSTER_ENDPOINT=
+
+ENV GOCQL_HOST_LOOKUP_PREFER_V4=true
 
 RUN bash -c 'echo "127.0.0.1 backend.local" >> /etc/hosts'
 RUN bash -c 'echo "127.0.0.1 frontend.local" >> /etc/hosts'
@@ -63,4 +65,4 @@ RUN bash -c 'echo "127.0.0.1 frontend.local" >> /etc/hosts'
 ####################################################################################
 
 
-CMD ["GOCQL_HOST_LOOKUP_PREFER_V4=true","/usr/bin/nice", "-n", "5","/app/scrp/gsvc",  "${CASSANDRAS}", "${CASSANDRA_RETRY}", "${CASSANDRA_VERIFY_HOSTS}", "${CASSANDRA_ROOTCA}", "${CASSANDRA_CLIENT_CERT}", "${CASSANDRA_CLIENT_KEY}"]
+CMD /usr/bin/nice -n 5 /app/scrp/gsvc $CASSANDRAS $CASSANDRA_RETRY $CASSANDRA_VERIFY_HOSTS $CASSANDRA_ROOTCA $CASSANDRA_CLIENT_CERT $CASSANDRA_CLIENT_KEY
