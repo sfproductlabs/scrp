@@ -22,6 +22,7 @@ create table urls (
   sched timestamp, --scheduled for processing
   mid text, --machine id
   qid timeuuid, --query id
+  attempt timeuuid,
   attempts int,
   PRIMARY KEY (url)
 );

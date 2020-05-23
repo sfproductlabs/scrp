@@ -132,7 +132,7 @@ func (i *Cassandra) UpdateURL(in *pb.ScrapeRequest) error {
 				).Exec()
 			}
 		} else {
-			err = i.session.Query(`UPDATE urls set attempts=? where url=?`,
+			err = i.session.Query(`UPDATE urls set attempt=null attempts=? where url=?`,
 				in.Attempts+1,
 				in.Url,
 			).Exec()
@@ -144,6 +144,14 @@ func (i *Cassandra) UpdateURL(in *pb.ScrapeRequest) error {
 //GetTodos Get stuff to work on
 func (i *Cassandra) GetTodos() *gocql.Iter {
 	return i.session.Query(`SELECT * FROM URLS`).Iter()
+}
+
+//UpdateAttempt
+func (i *Cassandra) UpdateAttempt(url string) {
+	i.session.Query(`UPDATE urls set attempt=? where url=?`,
+		gocql.TimeUUID(),
+		url,
+	).Exec()
 }
 
 //GetQuery Get stuff to work on

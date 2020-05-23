@@ -260,6 +260,7 @@ func process() {
 	var status int32
 	var sched time.Time
 	var mid string
+	var attempt gocql.UUID
 	var attempts int32
 	var domain string
 	var filter string
@@ -275,12 +276,16 @@ PROCESS:
 			"status":   &status,
 			"sched":    &sched,
 			"mid":      &mid,
+			"attempt":  &attempt,
 			"attempts": &attempts,
 		}
 		if !iter.MapScan(row) {
 			break
 		}
 		if sched.After(time.Now()) {
+			continue
+		}
+		if attempt.Time().In(time.UTC).Add(12 * time.Second).After(time.Now().In(time.UTC)) {
 			continue
 		}
 		if val, ok := queries[qid]; ok {
@@ -290,6 +295,7 @@ PROCESS:
 		} else {
 			var err error
 			if domain, filter, err = db.GetQuery(qid.String()); err == nil {
+				db.UpdateAttempt(url)
 				queue = make(chan *pb.ScrapeRequest, 100)
 				queries[qid] = &Query{Domain: domain, Filter: filter, Queue: queue}
 				go func() {
@@ -309,7 +315,7 @@ PROCESS:
 
 func main() {
 	fmt.Println("\n\n//////////////////////////////////////////////////////////////")
-	fmt.Println("Scrp. Version 14")
+	fmt.Println("Scrp. Version 16")
 	fmt.Println("Horizontal web-scraper for clusters and swarm")
 	fmt.Println("https://github.com/sfproductlabs/scrp")
 	fmt.Println("(c) Copyright 2020 SF Product Labs LLC.")
