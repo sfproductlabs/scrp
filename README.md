@@ -34,6 +34,11 @@ Then (on linux - you can use brew on mac):
 ```
 
 ### Scrape Instructions (local)
+Add backend.local to your /etc/hosts file:
+```
+bash -c 'echo "127.0.0.1 backend.local" >> /etc/hosts'
+```
+
 First run the server on all the nodes (use the testlocal.sh script for brevity):
 ```
 #GOCQL_HOST_LOOKUP_PREFER_V4=true /usr/bin/nice -n 5 ./gsvc localhost false false ./.setup/keys/rootCa.crt ./.setup/keys/cassandra-client.crt ./.setup/keys/cassandra-client.key
@@ -50,15 +55,15 @@ Notice the parameters:
 
 Then send a request via the client:
 ```
-./gcli localhost:50551 https://en.wikipedia.org/wiki/List_of_HTTP_status_codes
+./gcli backend.local:50551 https://en.wikipedia.org/wiki/List_of_HTTP_status_codes
 ```
 Or something a little more complex (with domain filter & regex [note you can split regex into multiple filters using ```||```]):
 ```
-./gcli localhost:50551 https://en.wikipedia.org/wiki/List_of_HTTP_status_codes en.wikipedia.org ".*List.*status_codes$"
+./gcli backend.local:50551 https://en.wikipedia.org/wiki/List_of_HTTP_status_codes en.wikipedia.org ".*List.*status_codes$"
 ```
-Or without the domain filter:
+Or without the domain filter and just the regex (use the _ operator to skip):
 ```
-./gcli localhost:50551 https://en.wikipedia.org/wiki/List_of_HTTP_status_codes _ ".*List.*status_codes$"
+./gcli backend.local:50551 https://en.wikipedia.org/wiki/List_of_HTTP_status_codes _ ".*List.*status_codes$"
 ```
 
 ## Running on Docker Swarm
