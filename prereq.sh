@@ -30,6 +30,7 @@ cqlsh --ssl -f ./.setup/schema.1.cql
 #Generate certificates for gRPC
 #Common Name (e.g. server FQDN or YOUR name) []:backend.local
 openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout ./.setup/keys/backend.key -out ./.setup/keys/backend.cert -subj "/C=US/ST=San Francisco/L=San Francisco/O=SFPL/OU=IT Department/CN=backend.local"
+openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout ./.setup/keys/scrp_scrp.key -out ./.setup/keys/scrp_scrp.cert -subj "/C=US/ST=San Francisco/L=San Francisco/O=SFPL/OU=IT Department/CN=scrp_scrp"
 openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout ./.setup/keys/frontend.key -out ./.setup/keys/frontend.cert -subj "/C=US/ST=San Francisco/L=San Francisco/O=SFPL/OU=IT Department/CN=frontend.local"
 
 

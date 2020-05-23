@@ -65,6 +65,8 @@ Or without the domain filter:
 ### Deploy to a swarm
 *Important: First make sure you deploy the [schema](https://github.com/sfproductlabs/scrp/blob/master/.setup/schema.1.cql) to cassandra somewhere.*
 
+Ex. ```cqlsh --ssl -f ./.setup/schema.1.cql ```
+
 
 [Checkout and use the swarm-config example](https://github.com/sfproductlabs/scrp/blob/master/scrp-docker-compose.yml) then on your docker swarm manager:
 ```

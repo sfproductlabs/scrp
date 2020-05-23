@@ -27,8 +27,8 @@ services:
       - CASSANDRA_ROOTCA=/run/secrets/prod-rootCa.crt
       - CASSANDRA_CLIENT_CERT=/run/secrets/prod-cassandra-client.crt
       - CASSANDRA_CLIENT_KEY=/run/secrets/prod-cassandra-client.key
-      - BACKEND_CERT=
-      - BACKEND_KEY=
+      - BACKEND_CERT=/app/scrp/.setup/keys/scrp_scrp.cert
+      - BACKEND_KEY=/app/scrp/.setup/keys/scrp_scrp.key
       - CLUSTER_ENDPOINT=scrp_scrp:50551
     secrets:
       - prod-cassandra-client.crt
