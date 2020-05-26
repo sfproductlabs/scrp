@@ -125,13 +125,13 @@ $hcloud datacenter list
 $hcloud network create --ip-range=10.1.0.0/16 --name=aftnet
 $hcloud network add-subnet --ip-range=10.1.0.0/16 --type=server --network-zone=eu-central aftnet
 ```
-* Create 100 servers (replace the type with your instance preference Ex. cx41)
+* Create 30 servers (replace the type with your instance preference Ex. cx41)
 ```
-$for n in {1..2}; do hcloud server create --name scrp$n --type cx11 --image debian-9 --datacenter nbg1-dc3 --network aftnet --ssh-key andy; done
+$for n in {1..30}; do hcloud server create --name scrp$n --type cx11 --image debian-9 --datacenter nbg1-dc3 --network aftnet --ssh-key andy; done
 ```
 * Get a list of them. IMPORTANT. This will be used to delete the servers later. Check them!
 ```
-$rm scrps-vips.txt
+$rm *.txt
 $hcloud server list -o columns=name -o noheader > scrps-names.txt
 $hcloud server list -o columns=ipv4 -o noheader > scrps-ips.txt
 $cat scrps-names.txt | xargs -I {} hcloud server describe -o json {} | jq -r '.private_net[0].ip' >> scrps-vips.txt
