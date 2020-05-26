@@ -88,10 +88,13 @@ docker run -it --net=forenet sfproductlabs/scrp /app/scrp/gcli scrp_scrp:50551 h
 ```
 #### Deploying swarm on Hetzner
 ```
-$ = Your client/development machine
+$ = Your client/development machine, run them from this git repository root
 # = As root on the dockermanager
 d# = As root on the docker swarm drone
 ```
+
+##### Setting up Hetzner
+**Remember to run the $ commands from the git repository root**
 
 * Install hetzner cli:
 ```
@@ -122,22 +125,94 @@ $hcloud datacenter list
 $hcloud network create --ip-range=10.1.0.0/16 --name=aftnet
 $hcloud network add-subnet --ip-range=10.1.0.0/16 --type=server --network-zone=eu-central aftnet
 ```
-* Create 100 servers
+* Create 100 servers (replace the type with your instance preference Ex. cx41)
 ```
-$for n in {1..2}; do hcloud server create --name scrp$n --type cx11 --image ubuntu-20.04 --datacenter nbg1-dc3 --network aftnet --ssh-key andy; done
+$for n in {1..2}; do hcloud server create --name scrp$n --type cx11 --image debian-9 --datacenter nbg1-dc3 --network aftnet --ssh-key andy; done
 ```
 * Get a list of them. IMPORTANT. This will be used to delete the servers later. Check them!
 ```
 $rm scrps-vips.txt
 $hcloud server list -o columns=name -o noheader > scrps-names.txt
+$hcloud server list -o columns=ipv4 -o noheader > scrps-ips.txt
 $cat scrps-names.txt | xargs -I {} hcloud server describe -o json {} | jq -r '.private_net[0].ip' >> scrps-vips.txt
 ```
-* Create a cassandra server
+* Create a cassandra server (16GB ram):
 ```
-$hcloud server create --name cassandra1 --type cx41 --image ubuntu-20.04 --datacenter nbg1-dc3 --network aftnet --ssh-key andy
+$hcloud server create --name cassandra1 --type cx41 --image debian-9 --datacenter nbg1-dc3 --network aftnet --ssh-key andy
+$hcloud server describe -o json cassandra1 | jq -r '.private_net[0].ip' > cassandra-vip.txt
+```
+* Create a manager node, copy some files to it and login:
+Addtional step required *only* on a mac:
+```
+eval `ssh-agent`
+ssh-add ~/.ssh/id_rsa
+```
+Now get to it:
+```
+$hcloud server create --name manager1 --type cx11 --image debian-9 --datacenter nbg1-dc3 --network aftnet --ssh-key andy
+$hcloud server describe -o json manager1 | jq -r '.private_net[0].ip' > manager-vip.txt
+$scp *.txt root@$(hcloud server list -o columns=ipv4,name -o noheader | grep manager1 | awk '{print $1}'):~/
+$scp ansible/* root@$(hcloud server list -o columns=ipv4,name -o noheader | grep manager1 | awk '{print $1}'):~/
+$scp scrp-docker-compose.yml root@$(hcloud server list -o columns=ipv4,name -o noheader | grep manager1 | awk '{print $1}'):~/
+$ssh -l root -A $(hcloud server list -o columns=ipv4,name -o noheader | grep manager1 | awk '{print $1}')
+```
+##### Initializing a Docker Swarm
+https://docs.docker.com/engine/install/debian/
+
+From the #docker manager1 (last ssh command above) as root run, it's important to make sure this runs perfectly:
+
+```
+apt-get update && \
+apt-get upgrade -y && \
+apt-get install apt-transport-https ca-certificates curl gnupg-agent software-properties-common -y && \
+curl -fsSL https://download.docker.com/linux/debian/gpg | sudo apt-key add - && \
+apt-key fingerprint 0EBFCD88 && \
+add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/debian $(lsb_release -cs) stable" && \
+apt-get update && \
+apt-get install docker-ce docker-ce-cli containerd.io ansible -y && \
+docker swarm init --advertise-addr=ens10 && \
+docker swarm join-token worker | xargs | sed -r 's/^.*(docker.*).*$/\1/' > join.sh && \
+chmod +x join.sh
+```
+Now we can setup docker on all the client machines using ansible (still in the docker manager1):
+```
+printf "\n[defaults]\nhost_key_checking = False\n" >> /etc/ansible/ansible.cfg
+
+printf "\n[cassandras]\n" >> /etc/ansible/hosts
+cat cassandra-vip.txt >> /etc/ansible/hosts
+
+printf "\n[managers]\n" >> /etc/ansible/hosts
+cat manager-vip.txt >> /etc/ansible/hosts
+
+printf "\n[dockers]\n" >> /etc/ansible/hosts
+cat manager-vip.txt >> /etc/ansible/hosts
+cat scrps-vips.txt >> /etc/ansible/hosts
+cat cassandra-vip.txt >> /etc/ansible/hosts
+
+printf "\n[scrps]\n" >> /etc/ansible/hosts
+cat scrps-vips.txt >> /etc/ansible/hosts
 ```
 
-* DELETE THEM. Yes. Let's get used to it, and make sure we know what we're doing.
+Test the machines are contactable:
+```
+ansible dockers -a "uptime"
+```
+
+If that worked, install docker on all the machines:
+```
+printf "            $(cat join.sh | awk '{print $0}')" >> swarm-init.yml
+ansible-playbook swarm-init.yml
+```
+
+Test the dockers are up:
+```
+ansible dockers -a "docker stats --no-stream"
+```
+
+
+##### Deleting Machines
+
+* DELETE THEM. Yes. Let's get used to it, and make sure we know what we're doing. Double check everything before executing these commands.
 ```
 $cat scrps-names.txt | xargs -I {} hcloud server delete {}
 ```
