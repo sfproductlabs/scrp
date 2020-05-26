@@ -86,3 +86,79 @@ Then issue a query to the swarm (as above):
 ```
 docker run -it --net=forenet sfproductlabs/scrp /app/scrp/gcli scrp_scrp:50551 https://httpbin.org/delay/2
 ```
+#### Deploying swarm on Hetzner
+```
+$ = Your client/development machine
+# = As root on the dockermanager
+d# = As root on the docker swarm drone
+```
+
+* Install hetzner cli:
+```
+$sudo apt install hcloud-cli
+```
+* Go to the cloud console and create a project (important! make sure it's a new one, we will be deleting every server in here when we are done)
+* Then click on project->access->api tokens->generate token
+* Setup access on your local machine to the datacenters/project:
+```
+$hcloud context create scrp
+```
+* Make sure there are no servers here (yet)
+```
+$hcloud server list  
+```
+* Add your local machine to ssh auth
+```
+$hcloud ssh-key create --name andy --public-key-from-file ~/.ssh/id_rsa.pub  
+```
+* Choose a server-type
+```
+$hcloud server-type list
+$hcloud image list
+$hcloud datacenter list
+```
+* Create a network
+```
+$hcloud network create --ip-range=10.1.0.0/16 --name=aftnet
+$hcloud network add-subnet --ip-range=10.1.0.0/16 --type=server --network-zone=eu-central aftnet
+```
+* Create 100 servers
+```
+$for n in {1..2}; do hcloud server create --name scrp$n --type cx11 --image ubuntu-20.04 --datacenter nbg1-dc3 --network aftnet --ssh-key andy; done
+```
+* Get a list of them. IMPORTANT. This will be used to delete the servers later. Check them!
+```
+$rm scrps-vips.txt
+$hcloud server list -o columns=name -o noheader > scrps-names.txt
+$cat scrps-names.txt | xargs -I {} hcloud server describe -o json {} | jq -r '.private_net[0].ip' >> scrps-vips.txt
+```
+* Create a cassandra server
+```
+$hcloud server create --name cassandra1 --type cx41 --image ubuntu-20.04 --datacenter nbg1-dc3 --network aftnet --ssh-key andy
+```
+
+* DELETE THEM. Yes. Let's get used to it, and make sure we know what we're doing.
+```
+$cat scrps-names.txt | xargs -I {} hcloud server delete {}
+```
+or DANGEROUS (but great for cleaning up, will include cassandra):
+```
+$hcloud server list -o columns=name -o noheader | xargs -I {} hcloud server delete {}
+```
+
+
+
+
+
+##### Misc
+Example commands (https://docs.hetzner.cloud/):
+```
+$source <(hcloud completion bash)   # bash
+$source <(hcloud completion zsh)   # zsh
+$hcloud server list
+$hcloud ssh-key create --name demo --public-key-from-file ~/.ssh/id_rsa.pub         
+$hcloud server create --name demoserver --type cx11 --image debian-9 --ssh-key demo                 
+$hcloud server list             
+$hcloud server list | grep -E "[0-9]+.[0-9]+.[0-9]+.[0-9]+" | sed -r 's/.*(\w[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+).*$/\1/' > scrps-ips.txt
+$hcloud server list | grep -E '^[^ID]' | sed -r 's/^[0-9]+ +([^ ]+).*$/\1/ig' > scrps-names.txt
+```

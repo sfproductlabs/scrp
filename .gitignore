@@ -11,3 +11,6 @@ data/
 .DS_STORE
 .data/
 .DS_Store
+scrps-names.txt
+scrps-ips.txt
+scrps-vips.txt
