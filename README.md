@@ -67,6 +67,70 @@ Or without the domain filter and just the regex (use the _ operator to skip):
 ```
 
 ## Running on Docker Swarm
+### TL;DR Swarm Scripts for Hetzner
+This assumes you've setup a project in Hetzner and an API key. It should be a fresh environment. We will delete ALL the machines.
+On your local machine (from the scrp github repository):
+```
+sudo apt install hcloud-cli
+hcloud ssh-key create --name andy --public-key-from-file ~/.ssh/id_rsa.pub  
+hcloud network create --ip-range=10.1.0.0/16 --name=aftnet
+hcloud network add-subnet --ip-range=10.1.0.0/16 --type=server --network-zone=eu-central aftnet
+for n in {1..30}; do (hcloud server create --name scrp$RANDOM$RANDOM$RANDOM$RANDOM --type cx11 --image debian-9 --datacenter nbg1-dc3 --network aftnet --ssh-key andy 2>&1 >/dev/null &) ; done
+watch -n 5 "echo "Press Ctrl-c to exit when your server count meets the desired amount. You will need to copy and paste just the following instructions to proceed." && hcloud server list | grep 'running' | awk 'END {print NR}'"
+rm *.txt
+hcloud server list -o columns=name -o noheader > scrps-names.txt
+hcloud server list -o columns=ipv4 -o noheader > scrps-ips.txt
+cat scrps-names.txt | xargs -I {} hcloud server describe -o json {} | jq -r '.private_net[0].ip' >> scrps-vips.txt
+hcloud server create --name cassandra1 --type cx41 --image debian-9 --datacenter nbg1-dc3 --network aftnet --ssh-key andy
+hcloud server describe -o json cassandra1 | jq -r '.private_net[0].ip' > cassandra-vip.txt
+hcloud server create --name manager1 --type cx11 --image debian-9 --datacenter nbg1-dc3 --network aftnet --ssh-key andy
+hcloud server describe -o json manager1 | jq -r '.private_net[0].ip' > manager-vip.txt
+scp -o StrictHostKeyChecking=no *.txt root@$(hcloud server list -o columns=ipv4,name -o noheader | grep manager1 | awk '{print $1}'):~/
+scp -o StrictHostKeyChecking=no ansible/* root@$(hcloud server list -o columns=ipv4,name -o noheader | grep manager1 | awk '{print $1}'):~/
+scp -o StrictHostKeyChecking=no scrp-docker-compose.yml root@$(hcloud server list -o columns=ipv4,name -o noheader | grep manager1 | awk '{print $1}'):~/
+scp -o StrictHostKeyChecking=no .setup/schema* root@$(hcloud server list -o columns=ipv4,name -o noheader | grep manager1 | awk '{print $1}'):~/
+```
+If it stuffs up run **DANGEROUS** it will delete all your servers for the project:
+```
+hcloud server list -o columns=name -o noheader | xargs -P 8 -I {} hcloud server delete {}
+```
+If not get on the manager node ```ssh -l root -A $(hcloud server list -o columns=ipv4,name -o noheader | grep manager1 | awk '{print $1}')``` and run:
+```
+apt-get update && \
+apt-get upgrade -y && \
+apt-get install apt-transport-https ca-certificates curl gnupg-agent software-properties-common -y && \
+curl -fsSL https://download.docker.com/linux/debian/gpg | sudo apt-key add - && \
+apt-key fingerprint 0EBFCD88 && \
+add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/debian $(lsb_release -cs) stable" && \
+apt-get update && \
+apt-get install docker-ce docker-ce-cli containerd.io ansible -y && \
+docker swarm init --advertise-addr=ens10 && \
+docker swarm join-token worker | xargs | sed -r 's/^.*(docker.*).*$/\1/' > join.sh && \
+chmod +x join.sh && \
+printf "\n[defaults]\nhost_key_checking = False\n" >> /etc/ansible/ansible.cfg && \
+printf "\n[cassandras]\n" >> /etc/ansible/hosts && \
+cat cassandra-vip.txt >> /etc/ansible/hosts && \
+printf "\n[managers]\n" >> /etc/ansible/hosts && \
+cat manager-vip.txt >> /etc/ansible/hosts && \
+printf "\n[dockers]\n" >> /etc/ansible/hosts && \
+cat manager-vip.txt >> /etc/ansible/hosts && \
+cat scrps-vips.txt >> /etc/ansible/hosts && \
+cat cassandra-vip.txt >> /etc/ansible/hosts && \
+printf "\n[scrps]\n" >> /etc/ansible/hosts && \
+cat scrps-vips.txt >> /etc/ansible/hosts && \
+ansible dockers -a "uptime" && \
+printf "\n            $(cat join.sh | awk '{print $0}')" >> swarm-init.yml && \
+ansible-playbook swarm-init.yml && \
+ansible dockers -a "docker stats --no-stream" && \
+docker node ls && \
+docker node update --label-add cassandra=true cassandra1 && \
+docker network create -d overlay --attachable forenet --subnet 192.168.9.0/24 && \
+docker network create -d overlay --attachable forenet --subnet 192.168.9.0/24 && \
+ansible-playbook cassandras-init.yml && \
+docker secret create schema.1.cql schema.1.cql && \
+docker stack deploy -c scrp-docker-compose.yml scrp
+```
+
 ### Deploy to a swarm
 *Important: First make sure you deploy the [schema](https://github.com/sfproductlabs/scrp/blob/master/.setup/schema.1.cql) to cassandra somewhere.*
 
@@ -127,7 +191,11 @@ $hcloud network add-subnet --ip-range=10.1.0.0/16 --type=server --network-zone=e
 ```
 * Create 30 servers (replace the type with your instance preference Ex. cx41)
 ```
-$for n in {1..30}; do hcloud server create --name scrp$n --type cx11 --image debian-9 --datacenter nbg1-dc3 --network aftnet --ssh-key andy; done
+$for n in {1..30}; do (hcloud server create --name scrp$RANDOM$RANDOM$RANDOM$RANDOM --type cx11 --image debian-9 --datacenter nbg1-dc3 --network aftnet --ssh-key andy &) ; done
+```
+* In a SEPARATE terminal see the status of your booting machines (you can delete them all using the command below if something bad happens):
+```
+$watch -n 5 "echo "Press Ctrl-c to exit when your server count meets the desired amount" && hcloud server list | grep 'running' | awk 'END {print NR}'"
 ```
 * Get a list of them. IMPORTANT. This will be used to delete the servers later. Check them!
 ```
@@ -147,19 +215,20 @@ Addtional step required *only* on a mac:
 eval `ssh-agent`
 ssh-add ~/.ssh/id_rsa
 ```
-Now get to it:
+Now create a manager, and get to it:
 ```
 $hcloud server create --name manager1 --type cx11 --image debian-9 --datacenter nbg1-dc3 --network aftnet --ssh-key andy
 $hcloud server describe -o json manager1 | jq -r '.private_net[0].ip' > manager-vip.txt
-$scp *.txt root@$(hcloud server list -o columns=ipv4,name -o noheader | grep manager1 | awk '{print $1}'):~/
-$scp ansible/* root@$(hcloud server list -o columns=ipv4,name -o noheader | grep manager1 | awk '{print $1}'):~/
-$scp scrp-docker-compose.yml root@$(hcloud server list -o columns=ipv4,name -o noheader | grep manager1 | awk '{print $1}'):~/
+$scp -o StrictHostKeyChecking=no *.txt root@$(hcloud server list -o columns=ipv4,name -o noheader | grep manager1 | awk '{print $1}'):~/
+$scp -o StrictHostKeyChecking=no ansible/* root@$(hcloud server list -o columns=ipv4,name -o noheader | grep manager1 | awk '{print $1}'):~/
+$scp -o StrictHostKeyChecking=no scrp-docker-compose.yml root@$(hcloud server list -o columns=ipv4,name -o noheader | grep manager1 | awk '{print $1}'):~/
+$scp -o StrictHostKeyChecking=no .setup/schema* root@$(hcloud server list -o columns=ipv4,name -o noheader | grep manager1 | awk '{print $1}'):~/
 $ssh -l root -A $(hcloud server list -o columns=ipv4,name -o noheader | grep manager1 | awk '{print $1}')
 ```
 ##### Initializing a Docker Swarm
 https://docs.docker.com/engine/install/debian/
 
-From the #docker manager1 (last ssh command above) as root run, it's important to make sure this runs perfectly:
+From the #docker manager1 (last ssh command above) as root **(it's important to make sure this runs perfectly)** run:
 
 ```
 apt-get update && \
@@ -200,13 +269,27 @@ ansible dockers -a "uptime"
 
 If that worked, install docker on all the machines:
 ```
-printf "            $(cat join.sh | awk '{print $0}')" >> swarm-init.yml
+printf "\n            $(cat join.sh | awk '{print $0}')" >> swarm-init.yml
 ansible-playbook swarm-init.yml
 ```
 
 Test the dockers are up:
 ```
 ansible dockers -a "docker stats --no-stream"
+docker node ls
+```
+Now deploy the swarm stack:
+```
+docker node update --label-add cassandra=true cassandra1
+ansible-playbook cassandras-init.yml
+docker network create -d overlay --attachable forenet --subnet 192.168.9.0/24 
+docker secret create schema.1.cql schema.1.cql
+docker stack deploy -c scrp-docker-compose.yml scrp
+```
+Debug example:
+```
+#docker service ps scrp_cassandra --no-trunc
+#docker service logs scrp_cassandra -f
 ```
 
 
@@ -216,9 +299,9 @@ ansible dockers -a "docker stats --no-stream"
 ```
 $cat scrps-names.txt | xargs -I {} hcloud server delete {}
 ```
-or DANGEROUS (but great for cleaning up, will include cassandra):
+or DANGEROUS (but great for cleaning up, will include cassandra), in parallel:
 ```
-$hcloud server list -o columns=name -o noheader | xargs -I {} hcloud server delete {}
+hcloud server list -o columns=name -o noheader | xargs -P 8 -I {} hcloud server delete {}
 ```
 
 

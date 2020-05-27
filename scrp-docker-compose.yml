@@ -1,5 +1,6 @@
 version: "3.7"
 services:
+
   scrp:
     image: sfproductlabs/scrp:latest
     # command: tail -F test
@@ -11,6 +12,7 @@ services:
       placement:
         constraints:      
           - node.role != manager
+          - node.labels.cassandra != true 
       update_config:
         parallelism: 1
         delay: 10s
@@ -21,27 +23,46 @@ services:
           max-size: "100k"
     environment:
       - SWARM_NODE={{.Node.Hostname}}
-      - CASSANDRAS=cassandra1,cassandra2,cassandra3
+      - CASSANDRAS=scrp_cassandra
       - CASSANDRA_RETRY=false
       - CASSANDRA_VERIFY_HOSTS=false
-      - CASSANDRA_ROOTCA=/run/secrets/prod-rootCa.crt
-      - CASSANDRA_CLIENT_CERT=/run/secrets/prod-cassandra-client.crt
-      - CASSANDRA_CLIENT_KEY=/run/secrets/prod-cassandra-client.key
+      - CASSANDRA_ROOTCA=/app/scrp/.setup/keys/rootCa.crt
+      - CASSANDRA_CLIENT_CERT=/app/scrp/.setup/keys/cassandra-client.crt
+      - CASSANDRA_CLIENT_KEY=/app/scrp/.setup/keys/cassandra-client.key
       - BACKEND_CERT=/app/scrp/.setup/keys/scrp_scrp.cert
       - BACKEND_KEY=/app/scrp/.setup/keys/scrp_scrp.key
       - CLUSTER_ENDPOINT=scrp_scrp:50551
+
+  cassandra:
+    image: sfproductlabs/elassandra:latest
+    networks:
+      - forenet
+    deploy:
+      # resources:
+      #   limits:
+      #     cpus: '4'
+      #     memory: 15G
+      #   reservations:
+      #     cpus: '4'
+      #     memory: 3.8G      
+      replicas: 1
+      endpoint_mode: dnsrr
+      placement:
+        constraints:      
+        - node.labels.cassandra == true 
+      update_config:
+        parallelism: 1
+        delay: 10s
+      restart_policy:
+        condition: any
     secrets:
-      - prod-cassandra-client.crt
-      - prod-cassandra-client.key
-      - prod-rootCa.crt
+      - schema.1.cql
+    command: >
+             bash -c "((sleep 90s && cqlsh --ssl -f /run/secrets/schema.1.cql &) && (/docker-entrypoint.sh cassandra -f))"
 
 secrets:
-  prod-cassandra-client.crt:
-    external: true
-  prod-cassandra-client.key:
-    external: true
-  prod-rootCa.crt:
-    external: true
+  schema.1.cql:
+    external: true   
 
 networks:
   forenet:

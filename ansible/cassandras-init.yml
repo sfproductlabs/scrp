@@ -1,0 +1,11 @@
+#ansible-playbook swarm-init.yml -u root
+---
+    - hosts: cassandras
+      tasks:
+        - name: Update system for cassandras
+          shell: |
+            sysctl -w vm.max_map_count=1048575 && \            
+            echo "vm.max_map_count=1048575" >> /etc/sysctl.conf && \
+            systemctl daemon-reload && \
+            systemctl restart docker && \
+            sysctl -p

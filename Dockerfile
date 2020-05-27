@@ -25,21 +25,19 @@ RUN apt update && apt upgrade -y && apt install -y --no-install-recommends \
 ####################################################################################
 
 # ulimit increase (set in docker templats/aws ecs-task-definition too!!)
-RUN bash -c 'echo "root hard nofile 16384" >> /etc/security/limits.conf' \
- && bash -c 'echo "root soft nofile 16384" >> /etc/security/limits.conf' \
- && bash -c 'echo "* hard nofile 16384" >> /etc/security/limits.conf' \
- && bash -c 'echo "* soft nofile 16384" >> /etc/security/limits.conf'
+RUN bash -c 'echo "root hard nofile 1048575" >> /etc/security/limits.conf' \
+ && bash -c 'echo "root soft nofile 1048575" >> /etc/security/limits.conf' \
+ && bash -c 'echo "* hard nofile 1048575" >> /etc/security/limits.conf' \
+ && bash -c 'echo "* soft nofile 1048575" >> /etc/security/limits.conf'
 
 # ip/tcp tweaks, disable ipv6
-RUN bash -c 'echo "net.core.somaxconn = 8192" >> /etc/sysctl.conf' \
+RUN bash -c 'echo "net.core.somaxconn = 1048575" >> /etc/sysctl.conf' \
  && bash -c 'echo "net.ipv4.tcp_max_tw_buckets = 1440000" >> /etc/sysctl.conf' \
- && bash -c 'echo "net.ipv6.conf.all.disable_ipv6 = 1" >> /etc/sysctl.conf' \ 
- && bash -c 'echo "net.ipv4.ip_local_port_range = 5000 65000" >> /etc/sysctl.conf' \
- && bash -c 'echo "net.ipv4.tcp_fin_timeout = 15" >> /etc/sysctl.conf' \
  && bash -c 'echo "net.ipv4.tcp_window_scaling = 1" >> /etc/sysctl.conf' \
  && bash -c 'echo "net.ipv4.tcp_syncookies = 1" >> /etc/sysctl.conf' \
- && bash -c 'echo "net.ipv4.tcp_max_syn_backlog = 8192" >> /etc/sysctl.conf' \
- && bash -c 'echo "fs.file-max=65536" >> /etc/sysctl.conf'
+ && bash -c 'echo "net.ipv4.tcp_max_syn_backlog = 1048575" >> /etc/sysctl.conf' \
+ && bash -c 'echo "fs.file-max=1048575" >> /etc/sysctl.conf' \
+ && bash -c 'echo "vm.max_map_count=1048575" >> /etc/sysctl.conf'
 
 ####################################################################################
 
