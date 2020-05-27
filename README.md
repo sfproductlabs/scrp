@@ -97,7 +97,7 @@ If it stuffs up run **DANGEROUS** it will delete all your servers for the projec
 ```
 hcloud server list -o columns=name -o noheader | xargs -P 8 -I {} hcloud server delete {}
 ```
-If not get on the manager node ```ssh -l root -A $(hcloud server list -o columns=ipv4,name -o noheader | grep manager1 | awk '{print $1}')``` and run:
+If not get on the manager node ```ssh -l root -A $(hcloud server list -o columns=ipv4,name -o noheader | grep manager1 | awk '{print $1}')``` and run (copy and paste the whole thing):
 ```
 apt-get update && \
 apt-get upgrade -y && \
