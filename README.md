@@ -130,6 +130,10 @@ ansible-playbook cassandras-init.yml && \
 docker secret create schema.1.cql schema.1.cql && \
 docker stack deploy -c scrp-docker-compose.yml scrp
 ```
+Finally run a query (see above for more complex examples):
+```
+docker run -it --net=forenet sfproductlabs/scrp /app/scrp/gcli scrp_scrp:50551 https://httpbin.org/delay/2
+```
 
 ### Deploy to a swarm
 *Important: First make sure you deploy the [schema](https://github.com/sfproductlabs/scrp/blob/master/.setup/schema.1.cql) to cassandra somewhere.*
@@ -291,7 +295,10 @@ Give it a few minutes to boot, the scrps will take a while and likely fail a few
 docker service ps scrp_cassandra --no-trunc
 docker service logs scrp_cassandra -f
 ```
-
+Finally run a query (see above for more complex examples):
+```
+docker run -it --net=forenet sfproductlabs/scrp /app/scrp/gcli scrp_scrp:50551 https://httpbin.org/delay/2
+```
 
 ##### Deleting Machines
 
@@ -303,10 +310,6 @@ or DANGEROUS (but great for cleaning up, will include cassandra), in parallel:
 ```
 hcloud server list -o columns=name -o noheader | xargs -P 8 -I {} hcloud server delete {}
 ```
-
-
-
-
 
 ##### Misc
 Example commands (https://docs.hetzner.cloud/):
