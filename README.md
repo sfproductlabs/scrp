@@ -128,7 +128,6 @@ ansible dockers -a "docker stats --no-stream" && \
 docker node ls && \
 docker node update --label-add cassandra=true cassandra1 && \
 docker network create -d overlay --attachable forenet --subnet 192.168.9.0/24 && \
-docker network create -d overlay --attachable forenet --subnet 192.168.9.0/24 && \
 ansible-playbook cassandras-init.yml && \
 docker secret create schema.1.cql schema.1.cql && \
 docker stack deploy -c scrp-docker-compose.yml scrp
