@@ -68,8 +68,8 @@ Or without the domain filter and just the regex (use the _ operator to skip):
 
 ## Running on Docker Swarm
 ### TL;DR Swarm Scripts for Hetzner
-This assumes you've setup a project in Hetzner and an API key. It should be a fresh environment. We will delete ALL the machines.
-On your local machine (from the scrp github repository):
+This will set you up with a cluster running 30 machines. I use this on my own production servers. Nothing else. This assumes you've setup a project in Hetzner and an API key. It should be a fresh environment. We may delete ALL the machines in Hetzner if things don't work, so start with a fresh project and use the RIGHT API key.
+On your local/desktop/development machine (from the scrp github repository):
 ```
 sudo apt install hcloud-cli
 hcloud ssh-key create --name andy --public-key-from-file ~/.ssh/id_rsa.pub  
@@ -77,6 +77,9 @@ hcloud network create --ip-range=10.1.0.0/16 --name=aftnet
 hcloud network add-subnet --ip-range=10.1.0.0/16 --type=server --network-zone=eu-central aftnet
 for n in {1..30}; do (hcloud server create --name scrp$RANDOM$RANDOM$RANDOM$RANDOM --type cx11 --image debian-9 --datacenter nbg1-dc3 --network aftnet --ssh-key andy 2>&1 >/dev/null &) ; done
 watch -n 5 "echo "Press Ctrl-c to exit when your server count meets the desired amount. You will need to copy and paste just the following instructions to proceed." && hcloud server list | grep 'running' | awk 'END {print NR}'"
+```
+Wait until all your servers have been created then continue:
+```
 rm *.txt
 hcloud server list -o columns=name -o noheader > scrps-names.txt
 hcloud server list -o columns=ipv4 -o noheader > scrps-ips.txt
