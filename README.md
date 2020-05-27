@@ -303,6 +303,19 @@ Finally run a query (see above for more complex examples):
 docker run -it --net=forenet sfproductlabs/scrp /app/scrp/gcli scrp_scrp:50551 https://httpbin.org/delay/2
 ```
 
+##### Getting my data out
+If you are new to cassandra heres a quick intro:
+```
+$ssh -l root -A $(hcloud server list -o columns=ipv4,name -o noheader | grep cassandra1 | awk '{print $1}')
+#docker ps
+#docker exec -it c41 bash #replace c41 with your container
+## cqlsh --ssl
+cqlsh> select count(*) from scrp.content;
+cqlsh> COPY scrp.content  TO 'content.csv' WITH HEADER = FALSE;
+```
+
+
+
 ##### Deleting Machines
 
 * DELETE THEM. Yes. Let's get used to it, and make sure we know what we're doing. Double check everything before executing these commands.
