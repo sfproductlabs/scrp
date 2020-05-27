@@ -286,10 +286,10 @@ docker network create -d overlay --attachable forenet --subnet 192.168.9.0/24
 docker secret create schema.1.cql schema.1.cql
 docker stack deploy -c scrp-docker-compose.yml scrp
 ```
-Debug example:
+Give it a few minutes to boot, the scrps will take a while and likely fail a few times before they finally connect to cassandra, to debug example:
 ```
-#docker service ps scrp_cassandra --no-trunc
-#docker service logs scrp_cassandra -f
+docker service ps scrp_cassandra --no-trunc
+docker service logs scrp_cassandra -f
 ```
 
 
