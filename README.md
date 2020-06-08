@@ -338,3 +338,10 @@ $hcloud server list
 $hcloud server list | grep -E "[0-9]+.[0-9]+.[0-9]+.[0-9]+" | sed -r 's/.*(\w[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+).*$/\1/' > scrps-ips.txt
 $hcloud server list | grep -E '^[^ID]' | sed -r 's/^[0-9]+ +([^ ]+).*$/\1/ig' > scrps-names.txt
 ```
+
+##### Issues
+
+Sometimes I get a network issue running a new docker container(out of swarm mode using ```docker run```) in a node in a drained state, try and run this to fix things:
+```
+docker node update --availability active manager1
+```
