@@ -59,7 +59,7 @@ Then send a request via the client:
 ```
 Or something a little more complex (with domain filter & regex [note you can split regex into multiple filters using ```||```]):
 ```
-./gcli backend.local:50551 https://en.wikipedia.org/wiki/List_of_HTTP_status_codes en.wikipedia.org ".*List.*status_codes$"
+./gcli backend.local:50551 https://en.wikipedia.org/wiki/List_of_HTTP_status_codes en.wikipedia.org,wikipedia.org ".*List.*status_codes$"
 ```
 Or without the domain filter and just the regex (use the _ operator to skip):
 ```
