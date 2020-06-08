@@ -139,7 +139,7 @@ func scrape(in *pb.ScrapeRequest) {
 	}
 
 	if in.Domain != "" && in.Domain != "_" {
-		colly.AllowedDomains(in.Domain)(c)
+		colly.AllowedDomains(strings.Split(in.Domain, ",")...)(c)
 	}
 
 	// Limit the number of threads started by colly to one
@@ -315,7 +315,7 @@ PROCESS:
 
 func main() {
 	fmt.Println("\n\n//////////////////////////////////////////////////////////////")
-	fmt.Println("Scrp. Version 16")
+	fmt.Println("Scrp. Version 17")
 	fmt.Println("Horizontal web-scraper for clusters and swarm")
 	fmt.Println("https://github.com/sfproductlabs/scrp")
 	fmt.Println("(c) Copyright 2020 SF Product Labs LLC.")
