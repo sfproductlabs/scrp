@@ -345,3 +345,7 @@ Sometimes I get a network issue running a new docker container(out of swarm mode
 ```
 docker node update --availability active manager1
 ```
+For example:
+```
+docker node update --availability active manager1 && docker run -it --net=forenet sfproductlabs/scrp /app/scrp/gcli scrp_scrp:50551 https://www.buzzfeed.com/?country=us _ ".*buzzfeed\.com.*||.*[^\/de\/].*"
+```
