@@ -122,6 +122,12 @@ func scrape(in *pb.ScrapeRequest) {
 	// Instantiate default collector
 	c := colly.NewCollector(
 		colly.Async(true), // Turn on asynchronous requests
+		colly.IgnoreRobotsTxt(),
+		//Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:47.0) Gecko/20100101 Firefox/47.0
+		//Mozilla/5.0 (Macintosh; Intel Mac OS X x.y; rv:42.0) Gecko/20100101 Firefox/42.0
+		//"Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)"
+		//User-Agent: Mediapartners-Google Or for image search:   User-Agent: Googlebot-Image/1.0
+		colly.UserAgent("Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)"),
 	)
 
 	if debugScraper {
@@ -192,6 +198,8 @@ func scrape(in *pb.ScrapeRequest) {
 	ScrapeDetail(in, c)
 
 	c.OnRequest(func(r *colly.Request) {
+		r.Headers.Set("Accept-Language", "en-US")
+		r.Headers.Set("From", "googlebot(at)googlebot.com")
 		fmt.Println("Visiting", r.URL)
 	})
 
