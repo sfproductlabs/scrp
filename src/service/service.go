@@ -200,6 +200,7 @@ func scrape(in *pb.ScrapeRequest) {
 	c.OnRequest(func(r *colly.Request) {
 		r.Headers.Set("Accept-Language", "en-US")
 		r.Headers.Set("From", "googlebot(at)googlebot.com")
+		r.Headers.Set("Accept", "*/*")
 		fmt.Println("Visiting", r.URL)
 	})
 
