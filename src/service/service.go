@@ -324,7 +324,7 @@ PROCESS:
 
 func main() {
 	fmt.Println("\n\n//////////////////////////////////////////////////////////////")
-	fmt.Println("Scrp. Version 17")
+	fmt.Println("Scrp. Version 19")
 	fmt.Println("Horizontal web-scraper for clusters and swarm")
 	fmt.Println("https://github.com/sfproductlabs/scrp")
 	fmt.Println("(c) Copyright 2020 SF Product Labs LLC.")
