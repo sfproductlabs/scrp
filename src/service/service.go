@@ -236,6 +236,7 @@ func receive() {
 RECEIVE:
 	var in = <-received
 	//Write as fast as we want to cassandra, and add new ones to the queue
+	//TODO: Maybe don't write if url failed in the past
 	db.InsertURL(in)
 	goto RECEIVE //TODO: Test whether this as a single thread is ok
 }

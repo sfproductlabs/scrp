@@ -20,6 +20,7 @@ create table urls (
   seq timeuuid, --sequence it came in/last updated
   status int, --0 untouched, 200=OK etc
   sched timestamp, --scheduled for processing
+  completed timestamp,
   mid text, --machine id
   qid timeuuid, --query id
   attempt timeuuid,
@@ -27,12 +28,14 @@ create table urls (
   PRIMARY KEY (url)
 );
 CREATE INDEX urls_qid_idx ON urls ( qid );
+CREATE INDEX urls_attempts_idx ON urls ( attempts );
 
 create table failures (
   url text,
   seq timeuuid, --sequence it came in/last updated
   status int, --0 untouched, 200=OK etc
   sched timestamp, --scheduled for processing
+  completed timestamp,
   mid text, --machine id
   qid timeuuid, --query ids
   attempts int,
@@ -45,6 +48,7 @@ create table successes (
   seq timeuuid, --sequence it came in/last updated
   status int, --0 untouched, 200=OK etc
   sched timestamp, --scheduled for processing
+  completed timestamp,
   mid text, --machine id
   qid timeuuid, --query id
   size bigint,
