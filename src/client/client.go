@@ -90,7 +90,7 @@ func main() {
 
 	// Contact the server and print out its response.
 
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 12*time.Second)
 	defer cancel()
 	r, err := client.Scrape(ctx, &pb.ScrapeRequest{Url: url, Domain: domain, Filter: filter})
 	if err != nil {
