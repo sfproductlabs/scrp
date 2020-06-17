@@ -77,11 +77,12 @@ func (i *Cassandra) InsertURL(in *pb.ScrapeRequest) error {
 		in.Domain,
 		in.Filter,
 	).Exec(); err == nil {
-		err = i.session.Query(`INSERT INTO urls (url,status,seq,sched,mid,qid,attempts) values (?,?,?,?,?,?,?) IF NOT EXISTS`,
+		err = i.session.Query(`INSERT INTO urls (url,status,seq,sched,completed,mid,qid,attempts) values (?,?,?,?,?,?,?,?) IF NOT EXISTS`,
 			in.Url,
 			0,
 			gocql.TimeUUID(),
 			time.Now().UTC(),
+			false,
 			GetMachineString(),
 			qid,
 			0).Exec()
@@ -97,42 +98,39 @@ func (i *Cassandra) UpdateURL(in *pb.ScrapeRequest) error {
 	if err != nil {
 		sched = time.Now().UTC()
 	}
-	completed := time.Now().UTC()
 	qid, err := gocql.ParseUUID(in.Id)
 	if err != nil {
 		qid = gocql.TimeUUID()
 	}
 	if in.Status >= 200 && in.Status < 300 {
-		if err = i.session.Query(`INSERT INTO successes (url,status,seq,sched,completed,mid,qid,size,attempts) values (?,?,?,?,?,?,?,?,?)`,
+		if err = i.session.Query(`INSERT INTO successes (url,status,seq,sched,mid,qid,size,attempts) values (?,?,?,?,?,?,?,?)`,
 			in.Url,
 			in.Status,
 			gocql.TimeUUID(),
 			sched,
-			completed,
 			GetMachineString(),
 			qid,
 			in.Size,
 			in.Attempts+1,
 		).Exec(); err == nil {
-			err = i.session.Query(`UPDATE urls set attempts=22222, completed=? where url=?`,
-				completed,
+			err = i.session.Query(`UPDATE urls set completed=? where url=?`,
+				true,
 				in.Url,
 			).Exec()
 		}
 	} else {
 		if in.Attempts > retries {
-			if err = i.session.Query(`INSERT INTO failures (url,status,seq,sched,completed,mid,qid,attempts) values (?,?,?,?,?,?,?,?)`,
+			if err = i.session.Query(`INSERT INTO failures (url,status,seq,sched,mid,qid,attempts) values (?,?,?,?,?,?,?)`,
 				in.Url,
 				in.Status,
 				gocql.TimeUUID(),
 				sched,
-				completed,
 				GetMachineString(),
 				qid,
 				in.Attempts+1,
 			).Exec(); err == nil {
-				err = i.session.Query(`UPDATE urls set attempts=99999, completed=? where url=?`,
-					completed,
+				err = i.session.Query(`UPDATE urls set completed=? where url=?`,
+					true,
 					in.Url,
 				).Exec()
 			}
@@ -148,7 +146,7 @@ func (i *Cassandra) UpdateURL(in *pb.ScrapeRequest) error {
 
 //GetTodos Get stuff to work on
 func (i *Cassandra) GetTodos() *gocql.Iter {
-	return i.session.Query(`SELECT * FROM URLS where attempts <= ?`, retries).Iter()
+	return i.session.Query(`SELECT * FROM URLS where completed = false`).Iter()
 }
 
 //UpdateAttempt
