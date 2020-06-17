@@ -60,6 +60,7 @@ const (
 	debugScraper = true  //print verbose debug output
 	processWait  = 14    //seconds random max wait time for query outstanding links
 	siteWait     = 14    //seconds to wait between hits on site
+	apiWait      = 12    //gRPC wait
 	retries      = 3
 )
 
@@ -298,6 +299,10 @@ PROCESS:
 		if !iter.MapScan(row) {
 			break
 		}
+		if random.Float64() < 0.95 { //Skip 95% (~1/20) records randomly, reduces duplicates between services, corresponds to PageSize(200) in GetTodos
+			time.Sleep(time.Duration(100) * time.Milliscond)
+			continue
+		}
 		if sched.After(time.Now()) {
 			continue
 		}
@@ -325,6 +330,7 @@ PROCESS:
 		}
 		queue <- &pb.ScrapeRequest{Id: qid.String(), Url: url, Domain: domain, Filter: filter, Seq: seq.String(), Status: status, Sched: sched.String(), Mid: mid, Attempts: attempts}
 	}
+	iter.Close()
 	time.Sleep(time.Duration(random.Intn(processWait)) * time.Second)
 	goto PROCESS
 }

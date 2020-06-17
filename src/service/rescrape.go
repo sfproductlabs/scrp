@@ -49,7 +49,7 @@ func Rescrape(in *pb.ScrapeRequest) {
 
 	// Contact the server and print out its response.
 
-	ctx, cancel := context.WithTimeout(context.Background(), 12*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), apiWait*time.Second)
 	defer cancel()
 	_, err = client.Scrape(ctx, in)
 	if err != nil {
