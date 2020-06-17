@@ -60,7 +60,7 @@ const (
 	debugScraper = true  //print verbose debug output
 	processWait  = 14    //seconds random max wait time for query outstanding links
 	siteWait     = 14    //seconds to wait between hits on site
-	retries      = 1
+	retries      = 3
 )
 
 var (
@@ -209,12 +209,18 @@ func scrape(in *pb.ScrapeRequest) {
 		//fmt.Println(string(r.Body))
 		in.Status = int32(r.StatusCode)
 		in.Size = int64(len(r.Body))
-		db.UpdateURL(in)
+		err := db.UpdateURL(in)
+		if debugScraper && err != nil {
+			fmt.Println("[ERROR] Parsing url:", in, err)
+		}
 	})
 
 	c.OnError(func(r *colly.Response, err error) {
 		in.Status = int32(r.StatusCode)
-		db.UpdateURL(in)
+		err := db.UpdateURL(in)
+		if debugScraper && err != nil {
+			fmt.Println("[ERROR] Fetching url:", in, err)
+		}
 	})
 
 	c.Visit(fmt.Sprintf("%s", in.Url))

@@ -132,7 +132,7 @@ func (i *Cassandra) UpdateURL(in *pb.ScrapeRequest) error {
 				).Exec()
 			}
 		} else {
-			err = i.session.Query(`UPDATE urls set attempt=null attempts=? where url=?`,
+			err = i.session.Query(`UPDATE urls set attempt=null, attempts=? where url=?`,
 				in.Attempts+1,
 				in.Url,
 			).Exec()
