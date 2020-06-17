@@ -217,9 +217,9 @@ func scrape(in *pb.ScrapeRequest) {
 
 	c.OnError(func(r *colly.Response, err error) {
 		in.Status = int32(r.StatusCode)
-		err := db.UpdateURL(in)
-		if debugScraper && err != nil {
-			fmt.Println("[ERROR] Fetching url:", in, err)
+		erru := db.UpdateURL(in)
+		if debugScraper && (err != nil || erru != nil) {
+			fmt.Println("[ERROR] Fetching url:", in, err, erru)
 		}
 	})
 
@@ -330,7 +330,7 @@ PROCESS:
 
 func main() {
 	fmt.Println("\n\n//////////////////////////////////////////////////////////////")
-	fmt.Println("Scrp. Version 19")
+	fmt.Println("Scrp. Version 21")
 	fmt.Println("Horizontal web-scraper for clusters and swarm")
 	fmt.Println("https://github.com/sfproductlabs/scrp")
 	fmt.Println("(c) Copyright 2020 SF Product Labs LLC.")
