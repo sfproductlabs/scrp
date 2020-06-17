@@ -44,6 +44,7 @@ const (
 	defaultURL             = "https://httpbin.org/delay/2"
 	defaultDomain          = ""
 	defaultFilter          = ""
+	apiWait                = 12
 )
 
 func main() {

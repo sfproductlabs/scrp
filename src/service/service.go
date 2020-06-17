@@ -300,7 +300,7 @@ PROCESS:
 			break
 		}
 		if random.Float64() < 0.95 { //Skip 95% (~1/20) records randomly, reduces duplicates between services, corresponds to PageSize(200) in GetTodos
-			time.Sleep(time.Duration(100) * time.Milliscond)
+			time.Sleep(time.Duration(100) * time.Millisecond)
 			continue
 		}
 		if sched.After(time.Now()) {
@@ -337,7 +337,7 @@ PROCESS:
 
 func main() {
 	fmt.Println("\n\n//////////////////////////////////////////////////////////////")
-	fmt.Println("Scrp. Version 25")
+	fmt.Println("Scrp. Version 28")
 	fmt.Println("Horizontal web-scraper for clusters and swarm")
 	fmt.Println("https://github.com/sfproductlabs/scrp")
 	fmt.Println("(c) Copyright 2020 SF Product Labs LLC.")
