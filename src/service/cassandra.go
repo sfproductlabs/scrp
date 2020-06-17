@@ -146,7 +146,7 @@ func (i *Cassandra) UpdateURL(in *pb.ScrapeRequest) error {
 
 //GetTodos Get stuff to work on
 func (i *Cassandra) GetTodos() *gocql.Iter {
-	return i.session.Query(`SELECT * FROM URLS where completed = false`).Iter()
+	return i.session.Query(`SELECT * FROM URLS where completed = false`).PageSize(200).Iter()
 }
 
 //UpdateAttempt
