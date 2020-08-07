@@ -68,7 +68,7 @@ Or without the domain filter and just the regex (use the _ operator to skip):
 
 ## Running on Docker Swarm
 ### TL;DR Be your own google bot cluster in 5 minutes.
-This will set you up with a cluster running 30 machines on Hetzner Cloud (change the first 20 lines to suit your own cloud provider). I use this on my own production servers. Nothing else. This assumes you've setup a project in Hetzner and an API key. It should be a fresh environment. We may delete ALL the machines in Hetzner if things don't work, so start with a fresh project and use the RIGHT API key.
+This will set you up with a cluster running 30 machines on [Hetzner Cloud](https://hetzner.cloud/?ref=kVvYlAsUNbOF) (change the first 20 lines to suit your own cloud provider). I use this on my own production servers. Nothing else. This assumes you've setup a project in Hetzner and an API key. It should be a fresh environment. We may delete ALL the machines in Hetzner if things don't work, so start with a fresh project and use the RIGHT API key.
 On your local/desktop/development machine (from the scrp github repository):
 ```
 sudo apt install hcloud-cli
